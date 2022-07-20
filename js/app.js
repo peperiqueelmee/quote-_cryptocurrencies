@@ -8,11 +8,6 @@ const objBusqueda = {
     criptomoneda: ''
 }
 
-//Crear promise
-const obtenerCriptomonedas = criptomonedas => new Promise(resolve => {
-    resolve(criptomonedas);
-})
-
 
 document.addEventListener('DOMContentLoaded', () => {
     consultarCriptomonedas();
@@ -24,14 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 
-function consultarCriptomonedas() {
-
+async function consultarCriptomonedas() {
     const url = 'https://min-api.cryptocompare.com/data/top/mktcapfull?limit=10&tsym=CLP'
 
-    fetch(url)
-        .then(respuesta => respuesta.json())
-        .then(resultado => obtenerCriptomonedas(resultado.Data))
-        .then(criptomonedas => selectCriptomonedas(criptomonedas))
+    try {
+        const respuesta = await fetch(url);
+        const resultado = await respuesta.json();
+        selectCriptomonedas(resultado.Data);
+
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 
@@ -48,7 +46,6 @@ function selectCriptomonedas(criptomonedas) {
 
 function leerValor(e) {
     objBusqueda[e.target.name] = e.target.value;
-    console.log(objBusqueda);
 }
 
 function submitFormulario(e) {
@@ -84,18 +81,21 @@ function mostrarAlerta(msg) {
     }
 }
 
-function consultarAPI() {
+async function consultarAPI() {
     const { moneda, criptomoneda } = objBusqueda;
 
     const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${criptomoneda}&tsyms=${moneda}`
 
     mostrarSpinner();
 
-    fetch(url)
-        .then(respuesta => respuesta.json())
-        .then(cotizacion => {
-            mostrarCotizacionHTML(cotizacion.DISPLAY[criptomoneda][moneda])
-        })
+    try {
+        const respuesta = await fetch(url);
+        const cotizacion = await respuesta.json();
+        mostrarCotizacionHTML(cotizacion.DISPLAY[criptomoneda][moneda]);
+
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 function mostrarCotizacionHTML(cotizacion) {
@@ -109,7 +109,7 @@ function mostrarCotizacionHTML(cotizacion) {
 
     const precioAlto = document.createElement('p');
     precioAlto.innerHTML = `El precio más alto del dia: <span>${HIGHDAY}</span>`;
-    
+
     const precioBajo = document.createElement('p');
     precioBajo.innerHTML = `El precio más bajo del dia: <span>${LOWDAY}</span>`;
 
@@ -126,13 +126,13 @@ function mostrarCotizacionHTML(cotizacion) {
     resultado.appendChild(ultimaActualizacion);
 }
 
-function limpiarHTML(){
-    while(resultado.firstChild){
+function limpiarHTML() {
+    while (resultado.firstChild) {
         resultado.removeChild(resultado.firstChild);
     }
 }
 
-function mostrarSpinner(){
+function mostrarSpinner() {
     limpiarHTML();
 
     const spinner = document.createElement('div');
